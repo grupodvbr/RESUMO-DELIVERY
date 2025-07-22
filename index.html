@@ -204,7 +204,8 @@ function filtrarGrafico() {
   filtrados.forEach(d => {
     const data = d.data;
     const bruto = parseFloat(d.bruto || 0);
-    agrupado[data] = (agrupado[data] || 0) + bruto;
+    const label = new Date(data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    agrupado[label] = (agrupado[label] || 0) + bruto;
   });
 
   const labels = Object.keys(agrupado).sort();
