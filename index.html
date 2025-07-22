@@ -46,6 +46,13 @@
       line-height: 1.6;
     }
     .resumo-linha strong { display: block; font-size: 1.1em; margin-bottom: 4px; }
+    .total-box select#empresaResumo {
+      margin-top: 5px;
+      margin-left: 10px;
+      padding: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
   </style>
 </head>
 <body>
@@ -104,6 +111,11 @@
         <option value="11">Novembro</option>
         <option value="12">Dezembro</option>
       </select>
+      <br>
+      <label for="empresaResumo">Empresa:</label>
+      <select id="empresaResumo" onchange="atualizarTotais()">
+        <option value="">Todas</option>
+      </select>
     </div>
     <h3>💰 Totais por Plataforma</h3>
     <div class="total-line">
@@ -151,12 +163,18 @@ async function carregarDados() {
 
 function popularEmpresas() {
   const select = document.getElementById("empresa");
+  const selectResumo = document.getElementById("empresaResumo");
   const empresas = [...new Set(dados.map(d => d.empresa))];
   empresas.forEach(empresa => {
-    const opt = document.createElement("option");
-    opt.value = empresa;
-    opt.textContent = empresa;
-    select.appendChild(opt);
+    const opt1 = document.createElement("option");
+    opt1.value = empresa;
+    opt1.textContent = empresa;
+    select.appendChild(opt1);
+
+    const opt2 = document.createElement("option");
+    opt2.value = empresa;
+    opt2.textContent = empresa;
+    selectResumo.appendChild(opt2);
   });
 }
 
@@ -218,6 +236,7 @@ function filtrarGrafico() {
 
 function atualizarTotais() {
   const mes = document.getElementById("mesResumo")?.value;
+  const empresaResumo = document.getElementById("empresaResumo")?.value;
   const resumoPorEmpresa = {};
   let totalIfood = 0;
   let totalDM = 0;
@@ -225,6 +244,7 @@ function atualizarTotais() {
   dados.forEach(d => {
     const dataMes = d.data?.split("-")[1];
     if (mes && dataMes !== mes) return;
+    if (empresaResumo && d.empresa !== empresaResumo) return;
     const empresa = d.empresa;
     const plataforma = d.plataforma;
 
