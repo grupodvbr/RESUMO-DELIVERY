@@ -34,7 +34,8 @@
       font-weight: bold;
     }
 
-    .filters select, .filters input[type="date"] {
+    .filters select,
+    .filters input[type="date"] {
       padding: 10px;
       border-radius: 8px;
       border: 1px solid #ccc;
@@ -47,6 +48,7 @@
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      position: relative;
     }
 
     .total-box h3 {
@@ -60,6 +62,18 @@
       font-size: 1.2em;
       margin: 5px 0;
       color: #444;
+    }
+
+    .mes-selector {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+    .mes-selector select {
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #bbb;
     }
 
     @media (min-width: 600px) {
@@ -110,6 +124,23 @@
   </div>
 
   <div class="total-box">
+    <div class="mes-selector">
+      <label for="mes">Mês:</label>
+      <select id="mes">
+        <option value="01">Janeiro</option>
+        <option value="02">Fevereiro</option>
+        <option value="03">Março</option>
+        <option value="04">Abril</option>
+        <option value="05">Maio</option>
+        <option value="06">Junho</option>
+        <option value="07" selected>Julho</option>
+        <option value="08">Agosto</option>
+        <option value="09">Setembro</option>
+        <option value="10">Outubro</option>
+        <option value="11">Novembro</option>
+        <option value="12">Dezembro</option>
+      </select>
+    </div>
     <h3>💰 Valor Total (Todos os registros)</h3>
     <div class="total-line">
       <span>iFood:</span>
@@ -125,6 +156,16 @@
       <span>R$ 29.333,16</span>
     </div>
   </div>
+
+  <script>
+    // Define ontem como valor padrão da data de início
+    const ontem = new Date();
+    ontem.setDate(ontem.getDate() - 1);
+    const ontemFormatado = ontem.toISOString().split('T')[0];
+
+    document.getElementById('dataInicio').value = ontemFormatado;
+    document.getElementById('dataFim').valueAsDate = new Date(); // hoje
+  </script>
 
 </body>
 </html>
