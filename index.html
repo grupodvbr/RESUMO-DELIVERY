@@ -120,7 +120,16 @@ const URL_SCRIPT = "https://script.google.com/macros/s/AKfycby3tGjtsUXcak51bcWG1
 let dados = [];
 let chart;
 
+function setDefaultDates() {
+  const ontem = new Date();
+  ontem.setDate(ontem.getDate() - 1);
+  const iso = ontem.toISOString().split('T')[0];
+  document.getElementById("dataInicio").value = iso;
+  document.getElementById("dataFim").value = iso;
+}
+
 async function carregarDados() {
+  setDefaultDates();
   const res = await fetch(URL_SCRIPT);
   dados = await res.json();
   popularEmpresas();
