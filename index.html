@@ -6,26 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f7f7f7;
-      margin: 0;
-      padding: 0;
-    }
-
-    header {
-      background-color: #1e1e2f;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      font-size: 1.5em;
-      font-weight: bold;
-    }
-
-    .container {
-      padding: 20px;
-    }
-
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+    header { background-color: #1e1e2f; color: white; padding: 20px; text-align: center; font-size: 1.5em; font-weight: bold; }
+    .container { padding: 20px; }
     .chart-box, .total-box, .resumo-box {
       background: white;
       border-radius: 10px;
@@ -33,55 +16,27 @@
       padding: 20px;
       margin-bottom: 20px;
     }
-
-    .chart-box canvas {
-      max-width: 100%;
-      height: 300px;
-    }
-
-    .total-box h3, .resumo-box h3 {
-      margin-top: 0;
-    }
-
-    .total-line {
-      display: flex;
-      justify-content: space-between;
-      padding: 5px 0;
-      font-size: 1.1em;
-    }
-
-    .total-line strong {
-      font-weight: bold;
-    }
-
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .filters label {
-      font-weight: bold;
-    }
-
+    .chart-box canvas { max-width: 100%; height: 300px; }
+    .total-box h3, .resumo-box h3 { margin-top: 0; }
+    .total-line { display: flex; justify-content: space-between; padding: 5px 0; font-size: 1.1em; }
+    .total-line strong { font-weight: bold; }
+    .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .filters label { font-weight: bold; }
     .filters select, .filters input[type="date"] {
       padding: 10px;
       border-radius: 8px;
       border: 1px solid #ccc;
       width: 100%;
     }
-
-    .filters > div {
-      flex: 1 1 200px;
-    }
-
+    .filters > div { flex: 1 1 200px; }
     .resumo-linha {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      border-bottom: 1px solid #eee;
+      background: #eaffea;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      line-height: 1.6;
     }
+    .resumo-linha strong { display: block; font-size: 1.1em; margin-bottom: 4px; }
   </style>
 </head>
 <body>
@@ -89,7 +44,6 @@
 <header>📊 Painel Financeiro Integrado</header>
 
 <div class="container">
-
   <div class="filters">
     <div>
       <label for="dataInicio">Data Início</label>
@@ -159,7 +113,6 @@
     <h3>🏪 Resumo por Empresa</h3>
     <div id="resumo-empresas"></div>
   </div>
-
 </div>
 
 <script>
@@ -243,34 +196,57 @@ function filtrarGrafico() {
 }
 
 function atualizarTotais() {
-  const mes = document.getElementById("mesResumo").value;
-  const total = { ifood: 0, dm: 0, geral: 0 };
-  const empresas = {};
+  const mes = document.getElementById("mesResumo")?.value;
+  const empresasResumo = {};
+  let totalIfood = 0;
+  let totalDM = 0;
 
   dados.forEach(d => {
     const dataMes = d.data?.split("-")[1];
     if (mes && dataMes !== mes) return;
+    const empresa = d.empresa;
+    const plataforma = d.plataforma;
+    const chave = empresa + ' - ' + plataforma;
+
+    if (!empresasResumo[chave]) {
+      empresasResumo[chave] = { bruto: 0, liquido: 0, taxa: 0, repassado: 0, areceber: 0 };
+    }
 
     const bruto = parseFloat(d.bruto || 0);
-    if (d.plataforma === "iFood") total.ifood += bruto;
-    if (d.plataforma === "Delivery Much") total.dm += bruto;
+    const liquido = parseFloat(d.liquido || 0);
+    const taxa = parseFloat(d.taxa || 0);
+    const repassado = parseFloat(d.repassado || 0);
+    const areceber = parseFloat(d.areceber || 0);
 
-    total.geral += bruto;
-    if (!empresas[d.empresa]) empresas[d.empresa] = 0;
-    empresas[d.empresa] += bruto;
+    empresasResumo[chave].bruto += bruto;
+    empresasResumo[chave].liquido += liquido;
+    empresasResumo[chave].taxa += taxa;
+    empresasResumo[chave].repassado += repassado;
+    empresasResumo[chave].areceber += areceber;
+
+    if (d.plataforma === "iFood") totalIfood += bruto;
+    if (d.plataforma === "Delivery Much") totalDM += bruto;
   });
 
-  document.getElementById("total-ifood").textContent = "R$ " + total.ifood.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-  document.getElementById("total-dm").textContent = "R$ " + total.dm.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-  document.getElementById("total-geral").textContent = "R$ " + total.geral.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  document.getElementById("total-ifood").textContent = "R$ " + totalIfood.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  document.getElementById("total-dm").textContent = "R$ " + totalDM.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  document.getElementById("total-geral").textContent = "R$ " + (totalIfood + totalDM).toLocaleString('pt-BR', {minimumFractionDigits: 2});
 
   const resumo = document.getElementById("resumo-empresas");
   resumo.innerHTML = "";
-  Object.keys(empresas).forEach(nome => {
-    const linha = document.createElement("div");
-    linha.className = "resumo-linha";
-    linha.innerHTML = `🏪 <strong>${nome}</strong> <span>R$ ${empresas[nome].toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>`;
-    resumo.appendChild(linha);
+  Object.entries(empresasResumo).forEach(([nome, val]) => {
+    const perc = (val.taxa / val.bruto) * 100;
+    const div = document.createElement("div");
+    div.className = "resumo-linha";
+    div.innerHTML = `
+      <strong>${nome}</strong>
+      💰 Bruto: R$ ${val.bruto.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
+      💵 Líquido: R$ ${val.liquido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
+      📉 Taxa (${perc.toFixed(2)}%): R$ ${val.taxa.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
+      ✅ Já repassado: R$ ${val.repassado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
+      ⏳ A receber: R$ ${val.areceber.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+    `;
+    resumo.appendChild(div);
   });
 }
 
