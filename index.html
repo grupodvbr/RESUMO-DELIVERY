@@ -264,20 +264,18 @@ function atualizarResumoEmpresa() {
 
     if (!resumoPorEmpresa[emp]) resumoPorEmpresa[emp] = {};
     if (!resumoPorEmpresa[emp][plat]) {
-      resumoPorEmpresa[emp][plat] = { bruto: 0, liquido: 0, taxa: 0, repassado: 0, areceber: 0 };
+      resumoPorEmpresa[emp][plat] = { bruto: 0, liquido: 0, taxa: 0, repassado: 0 };
     }
 
     const bruto = parseFloat(d.bruto || 0);
     const liquido = parseFloat(d.liquido || 0);
     const taxa = parseFloat(d.taxa || 0);
     const repassado = parseFloat(d.repassado || 0);
-    const areceber = parseFloat(d.areceber || 0);
 
     resumoPorEmpresa[emp][plat].bruto += bruto;
     resumoPorEmpresa[emp][plat].liquido += liquido;
     resumoPorEmpresa[emp][plat].taxa += taxa;
     resumoPorEmpresa[emp][plat].repassado += repassado;
-    resumoPorEmpresa[emp][plat].areceber += areceber;
   });
 
   const resumo = document.getElementById("resumo-empresas");
@@ -295,7 +293,6 @@ function atualizarResumoEmpresa() {
         💵 Líquido: R$ ${val.liquido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
         📉 Taxa (${perc.toFixed(2)}%): R$ ${val.taxa.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
         ✅ Já repassado: R$ ${val.repassado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
-        ⏳ A receber: R$ ${val.areceber.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
       `;
     }
     resumo.appendChild(div);
