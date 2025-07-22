@@ -206,6 +206,71 @@ function filtrarGrafico() {
     }
   });
 }
+
+function atualizarTotais() {
+  const mes = document.getElementById("mesResumo")?.value;
+  const empresasResumo = {};
+  let totalIfood = 0;
+  let totalDM = 0;
+
+  dados.forEach(d => {
+    const dataMes = d.data?.split("-")[1];
+    if (mes && dataMes !== mes) return;
+    const empresa = d.empresa;
+    const plataforma = d.plataforma;
+
+    if (!empresasResumo[empresa]) {
+      empresasResumo[empresa] = {};
+    }
+    if (!empresasResumo[empresa][plataforma]) {
+      empresasResumo[empresa][plataforma] = { bruto: 0, liquido: 0, taxa: 0, repassado: 0, areceber: 0 };
+    }
+
+    const bruto = parseFloat(d.bruto || 0);
+    const liquido = parseFloat(d.liquido || 0);
+    const taxa = parseFloat(d.taxa || 0);
+    const repassado = parseFloat(d.repassado || 0);
+    const areceber = parseFloat(d.areceber || 0);
+
+    empresasResumo[empresa][plataforma].bruto += bruto;
+    empresasResumo[empresa][plataforma].liquido += liquido;
+    empresasResumo[empresa][plataforma].taxa += taxa;
+    empresasResumo[empresa][plataforma].repassado += repassado;
+    empresasResumo[empresa][plataforma].areceber += areceber;
+
+    if (d.plataforma === "iFood") totalIfood += bruto;
+    if (d.plataforma === "Delivery Much") totalDM += bruto;
+  });
+
+  document.getElementById("total-ifood").textContent = "R$ " + totalIfood.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  document.getElementById("total-dm").textContent = "R$ " + totalDM.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  document.getElementById("total-geral").textContent = "R$ " + (totalIfood + totalDM).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+
+  const resumo = document.getElementById("resumo-empresas");
+  resumo.innerHTML = "";
+
+  Object.entries(empresasResumo).forEach(([empresa, plataformas]) => {
+    const divEmpresa = document.createElement("div");
+    divEmpresa.className = "resumo-linha";
+    let html = `<strong>${empresa}</strong>`;
+
+    Object.entries(plataformas).forEach(([plat, val]) => {
+      const perc = val.bruto > 0 ? (val.taxa / val.bruto) * 100 : 0;
+      html += `
+        <div style="margin-left: 15px">
+        📦 <strong>${plat}</strong><br>
+        💰 Bruto: R$ ${val.bruto.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
+        💵 Líquido: R$ ${val.liquido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
+        📉 Taxa (${perc.toFixed(2)}%): R$ ${val.taxa.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
+        ✅ Já repassado: R$ ${val.repassado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
+        ⏳ A receber: R$ ${val.areceber.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
+        </div>`;
+    });
+
+    divEmpresa.innerHTML = html;
+    resumo.appendChild(divEmpresa);
+  });
+}
 </script>
 </body>
 </html>
