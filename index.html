@@ -26,7 +26,7 @@
       padding: 20px;
     }
 
-    .chart-box, .total-box {
+    .chart-box, .total-box, .resumo-box {
       background: white;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.05);
@@ -39,7 +39,7 @@
       height: 300px;
     }
 
-    .total-box h3 {
+    .total-box h3, .resumo-box h3 {
       margin-top: 0;
     }
 
@@ -75,6 +75,13 @@
     .filters > div {
       flex: 1 1 200px;
     }
+
+    .resumo-linha {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid #eee;
+    }
   </style>
 </head>
 <body>
@@ -84,6 +91,14 @@
 <div class="container">
 
   <div class="filters">
+    <div>
+      <label for="dataInicio">Data Início</label>
+      <input type="date" id="dataInicio" onchange="filtrarGrafico()">
+    </div>
+    <div>
+      <label for="dataFim">Data Fim</label>
+      <input type="date" id="dataFim" onchange="filtrarGrafico()">
+    </div>
     <div>
       <label for="empresa">Empresa</label>
       <select id="empresa" onchange="filtrarGrafico()">
@@ -106,6 +121,24 @@
   </div>
 
   <div class="total-box">
+    <div style="float:right">
+      <label for="mesResumo">Mês:</label>
+      <select id="mesResumo" onchange="atualizarTotais()">
+        <option value="">Todos</option>
+        <option value="01">Janeiro</option>
+        <option value="02">Fevereiro</option>
+        <option value="03">Março</option>
+        <option value="04">Abril</option>
+        <option value="05">Maio</option>
+        <option value="06">Junho</option>
+        <option value="07" selected>Julho</option>
+        <option value="08">Agosto</option>
+        <option value="09">Setembro</option>
+        <option value="10">Outubro</option>
+        <option value="11">Novembro</option>
+        <option value="12">Dezembro</option>
+      </select>
+    </div>
     <h3>💰 Totais por Plataforma</h3>
     <div class="total-line">
       <span>iFood</span>
@@ -122,26 +155,24 @@
     </div>
   </div>
 
+  <div class="resumo-box">
+    <h3>🏪 Resumo por Empresa</h3>
+    <div id="resumo-empresas"></div>
+  </div>
+
 </div>
 
 <script>
 const URL_SCRIPT = "https://script.google.com/macros/s/AKfycby3tGjtsUXcak51bcWG175VU4SWT2RV6pA9vJLyQxlMXSt3bGJFoi2R0YmDmuwzbcbOnw/exec";
-
 let dados = [];
 let chart;
 
 async function carregarDados() {
-  try {
-    const res = await fetch(URL_SCRIPT);
-    dados = await res.json();
-
-    popularEmpresas();
-    atualizarTotais();
-    gerarGrafico();
-
-  } catch (e) {
-    alert("Erro ao carregar dados: " + e);
-  }
+  const res = await fetch(URL_SCRIPT);
+  dados = await res.json();
+  popularEmpresas();
+  filtrarGrafico();
+  atualizarTotais();
 }
 
 function popularEmpresas() {
@@ -156,17 +187,17 @@ function popularEmpresas() {
 }
 
 function filtrarGrafico() {
-  gerarGrafico();
-  atualizarTotais();
-}
-
-function gerarGrafico() {
   const empresa = document.getElementById("empresa").value;
   const plataforma = document.getElementById("plataforma").value;
+  const dataInicio = document.getElementById("dataInicio").value;
+  const dataFim = document.getElementById("dataFim").value;
 
   const filtrados = dados.filter(d => {
+    const data = d.data;
     return (empresa === "todas" || d.empresa === empresa) &&
-           (plataforma === "todas" || d.plataforma === plataforma);
+           (plataforma === "todas" || d.plataforma === plataforma) &&
+           (!dataInicio || data >= dataInicio) &&
+           (!dataFim || data <= dataFim);
   });
 
   const agrupado = {};
@@ -197,6 +228,7 @@ function gerarGrafico() {
     },
     options: {
       responsive: true,
+      plugins: { legend: { display: false } },
       scales: {
         y: {
           beginAtZero: false,
@@ -204,39 +236,44 @@ function gerarGrafico() {
             callback: value => 'R$ ' + value.toLocaleString('pt-BR')
           }
         }
-      },
-      plugins: {
-        legend: { display: false }
       }
     }
   });
 }
 
 function atualizarTotais() {
-  let totalIfood = 0;
-  let totalDM = 0;
+  const mes = document.getElementById("mesResumo").value;
+  const total = { ifood: 0, dm: 0, geral: 0 };
+  const empresas = {};
 
-  const empresa = document.getElementById("empresa").value;
-  const plataforma = document.getElementById("plataforma").value;
+  dados.forEach(d => {
+    const dataMes = d.data?.split("-")[1];
+    if (mes && dataMes !== mes) return;
 
-  const filtrados = dados.filter(d => {
-    return (empresa === "todas" || d.empresa === empresa) &&
-           (plataforma === "todas" || d.plataforma === plataforma || plataforma === "todas");
-  });
-
-  filtrados.forEach(d => {
     const bruto = parseFloat(d.bruto || 0);
-    if (d.plataforma === "iFood") totalIfood += bruto;
-    if (d.plataforma === "Delivery Much") totalDM += bruto;
+    if (d.plataforma === "iFood") total.ifood += bruto;
+    if (d.plataforma === "Delivery Much") total.dm += bruto;
+
+    total.geral += bruto;
+    if (!empresas[d.empresa]) empresas[d.empresa] = 0;
+    empresas[d.empresa] += bruto;
   });
 
-  document.getElementById("total-ifood").textContent = "R$ " + totalIfood.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-  document.getElementById("total-dm").textContent = "R$ " + totalDM.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-  document.getElementById("total-geral").textContent = "R$ " + (totalIfood + totalDM).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  document.getElementById("total-ifood").textContent = "R$ " + total.ifood.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  document.getElementById("total-dm").textContent = "R$ " + total.dm.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  document.getElementById("total-geral").textContent = "R$ " + total.geral.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+
+  const resumo = document.getElementById("resumo-empresas");
+  resumo.innerHTML = "";
+  Object.keys(empresas).forEach(nome => {
+    const linha = document.createElement("div");
+    linha.className = "resumo-linha";
+    linha.innerHTML = `🏪 <strong>${nome}</strong> <span>R$ ${empresas[nome].toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>`;
+    resumo.appendChild(linha);
+  });
 }
 
 carregarDados();
 </script>
-
 </body>
 </html>
