@@ -121,11 +121,15 @@ let dados = [];
 let chart;
 
 function setDefaultDates() {
+  const hoje = new Date();
   const ontem = new Date();
-  ontem.setDate(ontem.getDate() - 1);
-  const iso = ontem.toISOString().split('T')[0];
-  document.getElementById("dataInicio").value = iso;
-  document.getElementById("dataFim").value = iso;
+  ontem.setDate(hoje.getDate() - 1);
+
+  const isoOntem = ontem.toISOString().split('T')[0];
+  const isoHoje = hoje.toISOString().split('T')[0];
+
+  document.getElementById("dataInicio").value = isoOntem;
+  document.getElementById("dataFim").value = isoHoje;
 }
 
 async function carregarDados() {
@@ -136,6 +140,7 @@ async function carregarDados() {
   filtrarGrafico();
   atualizarTotais();
 }
+
 
 function popularEmpresas() {
   const select = document.getElementById("empresa");
