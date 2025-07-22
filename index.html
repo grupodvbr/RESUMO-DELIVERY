@@ -53,6 +53,15 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
+    .row-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .bottom-box {
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -60,83 +69,89 @@
 <header>📊 Painel Financeiro Integrado</header>
 
 <div class="container">
-  <div class="filters">
-    <div>
-      <label for="dataInicio">Data Início</label>
-      <input type="date" id="dataInicio">
+
+  <div class="row-box">
+    <div class="chart-box" style="flex: 2; margin-right: 20px;">
+      <h3>📈 Vendas Brutas por Dia</h3>
+      <canvas id="graficoVendas"></canvas>
     </div>
-    <div>
-      <label for="dataFim">Data Fim</label>
-      <input type="date" id="dataFim">
-    </div>
-    <div>
-      <label for="empresa">Empresa</label>
-      <select id="empresa">
-        <option value="todas">Todas</option>
-      </select>
-    </div>
-    <div>
-      <label for="plataforma">Plataforma</label>
-      <select id="plataforma">
-        <option value="todas">Todas</option>
-        <option value="iFood">iFood</option>
-        <option value="Delivery Much">Delivery Much</option>
-      </select>
-    </div>
-    <div>
-      <button onclick="filtrarGrafico(); atualizarTotais();">Filtrar</button>
+
+    <div class="total-box" style="flex: 1;">
+      <div style="float:right">
+        <label for="mesResumo">Mês:</label>
+        <select id="mesResumo" onchange="atualizarTotais()">
+          <option value="">Todos</option>
+          <option value="01">Janeiro</option>
+          <option value="02">Fevereiro</option>
+          <option value="03">Março</option>
+          <option value="04">Abril</option>
+          <option value="05">Maio</option>
+          <option value="06">Junho</option>
+          <option value="07" selected>Julho</option>
+          <option value="08">Agosto</option>
+          <option value="09">Setembro</option>
+          <option value="10">Outubro</option>
+          <option value="11">Novembro</option>
+          <option value="12">Dezembro</option>
+        </select>
+        <br>
+        <label for="empresaResumo">Empresa:</label>
+        <select id="empresaResumo" onchange="atualizarTotais()">
+          <option value="">Todas</option>
+        </select>
+      </div>
+      <h3>💰 Totais por Plataforma</h3>
+      <div class="total-line">
+        <span>iFood</span>
+        <span id="total-ifood">R$ 0,00</span>
+      </div>
+      <div class="total-line">
+        <span>Delivery Much</span>
+        <span id="total-dm">R$ 0,00</span>
+      </div>
+      <hr />
+      <div class="total-line">
+        <strong>Total Geral</strong>
+        <strong id="total-geral">R$ 0,00</strong>
+      </div>
     </div>
   </div>
 
-  <div class="chart-box">
-    <h3>📈 Vendas Brutas por Dia</h3>
-    <canvas id="graficoVendas"></canvas>
-  </div>
+  <div class="bottom-box">
+    <div class="filters">
+      <div>
+        <label for="dataInicio">Data Início</label>
+        <input type="date" id="dataInicio">
+      </div>
+      <div>
+        <label for="dataFim">Data Fim</label>
+        <input type="date" id="dataFim">
+      </div>
+      <div>
+        <label for="empresa">Empresa</label>
+        <select id="empresa">
+          <option value="todas">Todas</option>
+        </select>
+      </div>
+      <div>
+        <label for="plataforma">Plataforma</label>
+        <select id="plataforma">
+          <option value="todas">Todas</option>
+          <option value="iFood">iFood</option>
+          <option value="Delivery Much">Delivery Much</option>
+        </select>
+      </div>
+      <div>
+        <button onclick="filtrarGrafico(); atualizarTotais();">Filtrar</button>
+      </div>
+    </div>
 
-  <div class="total-box">
-    <div style="float:right">
-      <label for="mesResumo">Mês:</label>
-      <select id="mesResumo" onchange="atualizarTotais()">
-        <option value="">Todos</option>
-        <option value="01">Janeiro</option>
-        <option value="02">Fevereiro</option>
-        <option value="03">Março</option>
-        <option value="04">Abril</option>
-        <option value="05">Maio</option>
-        <option value="06">Junho</option>
-        <option value="07" selected>Julho</option>
-        <option value="08">Agosto</option>
-        <option value="09">Setembro</option>
-        <option value="10">Outubro</option>
-        <option value="11">Novembro</option>
-        <option value="12">Dezembro</option>
-      </select>
-      <br>
-      <label for="empresaResumo">Empresa:</label>
-      <select id="empresaResumo" onchange="atualizarTotais()">
-        <option value="">Todas</option>
-      </select>
-    </div>
-    <h3>💰 Totais por Plataforma</h3>
-    <div class="total-line">
-      <span>iFood</span>
-      <span id="total-ifood">R$ 0,00</span>
-    </div>
-    <div class="total-line">
-      <span>Delivery Much</span>
-      <span id="total-dm">R$ 0,00</span>
-    </div>
-    <hr />
-    <div class="total-line">
-      <strong>Total Geral</strong>
-      <strong id="total-geral">R$ 0,00</strong>
+    <div class="resumo-box">
+      <h3>🏪 Resumo por Empresa</h3>
+      <div id="resumo-empresas"></div>
     </div>
   </div>
 
-  <div class="resumo-box">
-    <h3>🏪 Resumo por Empresa</h3>
-    <div id="resumo-empresas"></div>
-  </div>
 </div>
 
 <script>
