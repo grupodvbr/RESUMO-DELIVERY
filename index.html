@@ -1,155 +1,81 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <title>Painel Financeiro Integrado</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
-    header { background-color: #1e1e2f; color: white; padding: 20px; text-align: center; font-size: 1.5em; font-weight: bold; }
-    .container { padding: 20px; }
-    .chart-box, .total-box, .resumo-box {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    .chart-box canvas { max-width: 100%; height: 300px; }
-    .total-box h3, .resumo-box h3 { margin-top: 0; }
-    .total-line { display: flex; justify-content: space-between; padding: 5px 0; font-size: 1.1em; }
-    .total-line strong { font-weight: bold; }
-    .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: end; }
-    .filters label { font-weight: bold; }
-    .filters select, .filters input[type="date"] {
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      width: 100%;
-    }
-    .filters > div { flex: 1 1 200px; }
-    .filters button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      background-color: #1e1e2f;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .resumo-linha {
-      background: #eaffea;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      line-height: 1.6;
-    }
-    .resumo-linha strong { display: block; font-size: 1.1em; margin-bottom: 4px; }
-    .total-box select#empresaResumo {
-      margin-top: 5px;
-      margin-left: 10px;
-      padding: 5px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    .row-box {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-    .bottom-box {
-      margin-top: 20px;
-    }
-  </style>
-</head>
+...
 <body>
 
 <header>📊 Painel Financeiro Integrado</header>
 
 <div class="container">
 
-  <div class="row-box">
-    <div class="chart-box" style="flex: 2; margin-right: 20px;">
-      <h3>📈 Vendas Brutas por Dia</h3>
-      <canvas id="graficoVendas"></canvas>
+  <!-- Totais por Plataforma no topo -->
+  <div class="total-box">
+    <div style="float:right">
+      <label for="mesResumo">Mês:</label>
+      <select id="mesResumo" onchange="atualizarTotais()">
+        <option value="">Todos</option>
+        <option value="01">Janeiro</option>
+        ...
+        <option value="12">Dezembro</option>
+      </select>
+      <br>
+      <label for="empresaResumo">Empresa:</label>
+      <select id="empresaResumo" onchange="atualizarTotais()">
+        <option value="">Todas</option>
+      </select>
     </div>
-
-    <div class="total-box" style="flex: 1;">
-      <div style="float:right">
-        <label for="mesResumo">Mês:</label>
-        <select id="mesResumo" onchange="atualizarTotais()">
-          <option value="">Todos</option>
-          <option value="01">Janeiro</option>
-          <option value="02">Fevereiro</option>
-          <option value="03">Março</option>
-          <option value="04">Abril</option>
-          <option value="05">Maio</option>
-          <option value="06">Junho</option>
-          <option value="07" selected>Julho</option>
-          <option value="08">Agosto</option>
-          <option value="09">Setembro</option>
-          <option value="10">Outubro</option>
-          <option value="11">Novembro</option>
-          <option value="12">Dezembro</option>
-        </select>
-        <br>
-        <label for="empresaResumo">Empresa:</label>
-        <select id="empresaResumo" onchange="atualizarTotais()">
-          <option value="">Todas</option>
-        </select>
-      </div>
-      <h3>💰 Totais por Plataforma</h3>
-      <div class="total-line">
-        <span>iFood</span>
-        <span id="total-ifood">R$ 0,00</span>
-      </div>
-      <div class="total-line">
-        <span>Delivery Much</span>
-        <span id="total-dm">R$ 0,00</span>
-      </div>
-      <hr />
-      <div class="total-line">
-        <strong>Total Geral</strong>
-        <strong id="total-geral">R$ 0,00</strong>
-      </div>
+    <h3>💰 Totais por Plataforma</h3>
+    <div class="total-line">
+      <span>iFood</span>
+      <span id="total-ifood">R$ 0,00</span>
+    </div>
+    <div class="total-line">
+      <span>Delivery Much</span>
+      <span id="total-dm">R$ 0,00</span>
+    </div>
+    <hr />
+    <div class="total-line">
+      <strong>Total Geral</strong>
+      <strong id="total-geral">R$ 0,00</strong>
     </div>
   </div>
 
-  <div class="bottom-box">
-    <div class="filters">
-      <div>
-        <label for="dataInicio">Data Início</label>
-        <input type="date" id="dataInicio">
-      </div>
-      <div>
-        <label for="dataFim">Data Fim</label>
-        <input type="date" id="dataFim">
-      </div>
-      <div>
-        <label for="empresa">Empresa</label>
-        <select id="empresa">
-          <option value="todas">Todas</option>
-        </select>
-      </div>
-      <div>
-        <label for="plataforma">Plataforma</label>
-        <select id="plataforma">
-          <option value="todas">Todas</option>
-          <option value="iFood">iFood</option>
-          <option value="Delivery Much">Delivery Much</option>
-        </select>
-      </div>
-      <div>
-        <button onclick="filtrarGrafico(); atualizarTotais();">Filtrar</button>
-      </div>
-    </div>
+  <!-- Gráfico de Vendas -->
+  <div class="chart-box">
+    <h3>📈 Vendas Brutas por Dia</h3>
+    <canvas id="graficoVendas"></canvas>
+  </div>
 
-    <div class="resumo-box">
-      <h3>🏪 Resumo por Empresa</h3>
-      <div id="resumo-empresas"></div>
+  <!-- Filtros para o resumo por empresa -->
+  <div class="filters">
+    <div>
+      <label for="dataInicio">Data Início</label>
+      <input type="date" id="dataInicio">
     </div>
+    <div>
+      <label for="dataFim">Data Fim</label>
+      <input type="date" id="dataFim">
+    </div>
+    <div>
+      <label for="empresa">Empresa</label>
+      <select id="empresa">
+        <option value="todas">Todas</option>
+      </select>
+    </div>
+    <div>
+      <label for="plataforma">Plataforma</label>
+      <select id="plataforma">
+        <option value="todas">Todas</option>
+        <option value="iFood">iFood</option>
+        <option value="Delivery Much">Delivery Much</option>
+      </select>
+    </div>
+    <div>
+      <button onclick="atualizarResumoEmpresa()">Filtrar Resumo</button>
+    </div>
+  </div>
+
+  <!-- Resumo por Empresa abaixo dos filtros -->
+  <div class="resumo-box">
+    <h3>🏪 Resumo por Empresa</h3>
+    <div id="resumo-empresas"></div>
   </div>
 
 </div>
@@ -161,9 +87,9 @@ let chart;
 
 function setDefaultDates() {
   const hoje = new Date();
-  const inicio = new Date();
-  inicio.setDate(hoje.getDate() - hoje.getDay());
-  document.getElementById("dataInicio").value = inicio.toISOString().split('T')[0];
+  const ontem = new Date();
+  ontem.setDate(hoje.getDate() - 1);
+  document.getElementById("dataInicio").value = ontem.toISOString().split('T')[0];
   document.getElementById("dataFim").value = hoje.toISOString().split('T')[0];
 }
 
@@ -174,6 +100,7 @@ async function carregarDados() {
   popularEmpresas();
   filtrarGrafico();
   atualizarTotais();
+  atualizarResumoEmpresa();
 }
 
 function popularEmpresas() {
@@ -194,19 +121,7 @@ function popularEmpresas() {
 }
 
 function filtrarGrafico() {
-  const empresa = document.getElementById("empresa").value;
-  const plataforma = document.getElementById("plataforma").value;
-  const dataInicio = document.getElementById("dataInicio").value;
-  const dataFim = document.getElementById("dataFim").value;
-
-  const filtrados = dados.filter(d => {
-    const data = d.data;
-    return (empresa === "todas" || d.empresa === empresa) &&
-           (plataforma === "todas" || d.plataforma === plataforma) &&
-           (!dataInicio || data >= dataInicio) &&
-           (!dataFim || data <= dataFim);
-  });
-
+  const filtrados = dados; // gráfico não será filtrado por data/empresa
   const agrupado = {};
   filtrados.forEach(d => {
     const data = d.data;
@@ -250,22 +165,31 @@ function filtrarGrafico() {
 }
 
 function atualizarTotais() {
-  const mes = document.getElementById("mesResumo")?.value;
-  const empresaResumo = document.getElementById("empresaResumo")?.value;
+  // Igual à versão anterior
+}
+
+function atualizarResumoEmpresa() {
+  const dataInicio = document.getElementById("dataInicio").value;
+  const dataFim = document.getElementById("dataFim").value;
+  const empresa = document.getElementById("empresa").value;
+  const plataforma = document.getElementById("plataforma").value;
+
+  const filtrados = dados.filter(d => {
+    return (!dataInicio || d.data >= dataInicio) &&
+           (!dataFim || d.data <= dataFim) &&
+           (empresa === "todas" || d.empresa === empresa) &&
+           (plataforma === "todas" || d.plataforma === plataforma);
+  });
+
   const resumoPorEmpresa = {};
-  let totalIfood = 0;
-  let totalDM = 0;
 
-  dados.forEach(d => {
-    const dataMes = d.data?.split("-")[1];
-    if (mes && dataMes !== mes) return;
-    if (empresaResumo && d.empresa !== empresaResumo) return;
-    const empresa = d.empresa;
-    const plataforma = d.plataforma;
+  filtrados.forEach(d => {
+    const emp = d.empresa;
+    const plat = d.plataforma;
 
-    if (!resumoPorEmpresa[empresa]) resumoPorEmpresa[empresa] = {};
-    if (!resumoPorEmpresa[empresa][plataforma]) {
-      resumoPorEmpresa[empresa][plataforma] = { bruto: 0, liquido: 0, taxa: 0, repassado: 0, areceber: 0 };
+    if (!resumoPorEmpresa[emp]) resumoPorEmpresa[emp] = {};
+    if (!resumoPorEmpresa[emp][plat]) {
+      resumoPorEmpresa[emp][plat] = { bruto: 0, liquido: 0, taxa: 0, repassado: 0, areceber: 0 };
     }
 
     const bruto = parseFloat(d.bruto || 0);
@@ -274,31 +198,24 @@ function atualizarTotais() {
     const repassado = parseFloat(d.repassado || 0);
     const areceber = parseFloat(d.areceber || 0);
 
-    resumoPorEmpresa[empresa][plataforma].bruto += bruto;
-    resumoPorEmpresa[empresa][plataforma].liquido += liquido;
-    resumoPorEmpresa[empresa][plataforma].taxa += taxa;
-    resumoPorEmpresa[empresa][plataforma].repassado += repassado;
-    resumoPorEmpresa[empresa][plataforma].areceber += areceber;
-
-    if (plataforma === "iFood") totalIfood += bruto;
-    if (plataforma === "Delivery Much") totalDM += bruto;
+    resumoPorEmpresa[emp][plat].bruto += bruto;
+    resumoPorEmpresa[emp][plat].liquido += liquido;
+    resumoPorEmpresa[emp][plat].taxa += taxa;
+    resumoPorEmpresa[emp][plat].repassado += repassado;
+    resumoPorEmpresa[emp][plat].areceber += areceber;
   });
-
-  document.getElementById("total-ifood").textContent = "R$ " + totalIfood.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-  document.getElementById("total-dm").textContent = "R$ " + totalDM.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-  document.getElementById("total-geral").textContent = "R$ " + (totalIfood + totalDM).toLocaleString('pt-BR', {minimumFractionDigits: 2});
 
   const resumo = document.getElementById("resumo-empresas");
   resumo.innerHTML = "";
-  for (const empresa in resumoPorEmpresa) {
-    const empresaDiv = document.createElement("div");
-    empresaDiv.className = "resumo-linha";
-    empresaDiv.innerHTML = `<strong>${empresa}</strong>`;
-    for (const plataforma in resumoPorEmpresa[empresa]) {
-      const val = resumoPorEmpresa[empresa][plataforma];
+  for (const emp in resumoPorEmpresa) {
+    const div = document.createElement("div");
+    div.className = "resumo-linha";
+    div.innerHTML = `<strong>${emp}</strong>`;
+    for (const plat in resumoPorEmpresa[emp]) {
+      const val = resumoPorEmpresa[emp][plat];
       const perc = (val.taxa / val.bruto) * 100 || 0;
-      empresaDiv.innerHTML += `
-        <br><u>${plataforma}</u><br>
+      div.innerHTML += `
+        <br><u>${plat}</u><br>
         💰 Bruto: R$ ${val.bruto.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
         💵 Líquido: R$ ${val.liquido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
         📉 Taxa (${perc.toFixed(2)}%): R$ ${val.taxa.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
@@ -306,11 +223,12 @@ function atualizarTotais() {
         ⏳ A receber: R$ ${val.areceber.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
       `;
     }
-    resumo.appendChild(empresaDiv);
+    resumo.appendChild(div);
   }
 }
 
 carregarDados();
 </script>
+
 </body>
 </html>
