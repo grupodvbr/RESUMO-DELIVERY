@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Painel Financeiro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -76,6 +77,19 @@
       border: 1px solid #bbb;
     }
 
+    .chart-box {
+      background: #fff;
+      margin: 15px;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    canvas {
+      max-width: 100%;
+      height: 280px !important;
+    }
+
     @media (min-width: 600px) {
       .filters {
         flex-direction: row;
@@ -91,81 +105,153 @@
 </head>
 <body>
 
-  <header>📊 Painel Financeiro - Delivery</header>
+<header>📊 Painel Financeiro - Delivery</header>
 
-  <div class="filters">
-    <div>
-      <label for="dataInicio">Data Início</label>
-      <input type="date" id="dataInicio">
-    </div>
-    <div>
-      <label for="dataFim">Data Fim</label>
-      <input type="date" id="dataFim">
-    </div>
-    <div>
-      <label for="empresa">Empresa</label>
-      <select id="empresa">
-        <option value="todas">Todas</option>
-        <option value="padaria">Padaria Delícia</option>
-        <option value="mercatto">Mercatto Delícia</option>
-        <option value="villa">Villa Gourmet</option>
-        <option value="gourmet">Delícia Gourmet</option>
-        <option value="kids">Mercatto Kids</option>
-      </select>
-    </div>
-    <div>
-      <label for="canal">Canal</label>
-      <select id="canal">
-        <option value="todos">Todos</option>
-        <option value="ifood">iFood</option>
-        <option value="deliverymuch">Delivery Much</option>
-      </select>
-    </div>
+<div class="filters">
+  <div>
+    <label for="dataInicio">Data Início</label>
+    <input type="date" id="dataInicio">
+  </div>
+  <div>
+    <label for="dataFim">Data Fim</label>
+    <input type="date" id="dataFim">
+  </div>
+  <div>
+    <label for="empresa">Empresa</label>
+    <select id="empresa" onchange="atualizarGrafico()">
+      <option value="todas">Todas</option>
+      <option value="padaria">Padaria Delícia</option>
+      <option value="mercatto">Mercatto Delícia</option>
+      <option value="villa">Villa Gourmet</option>
+      <option value="gourmet">Delícia Gourmet</option>
+      <option value="kids">Mercatto Kids</option>
+    </select>
+  </div>
+  <div>
+    <label for="canal">Canal</label>
+    <select id="canal" onchange="atualizarGrafico()">
+      <option value="todos">Todos</option>
+      <option value="ifood">iFood</option>
+      <option value="deliverymuch">Delivery Much</option>
+    </select>
+  </div>
+</div>
+
+<div class="chart-box">
+  <h3>📈 Vendas por Dia</h3>
+  <canvas id="graficoVendas"></canvas>
+</div>
+
+<div class="total-box">
+  <div class="mes-selector">
+    <label for="mes" style="font-size: 0.9em;">Mês:</label>
+    <select id="mes" onchange="atualizarTotais()">
+      <option value="0">Janeiro</option>
+      <option value="1">Fevereiro</option>
+      <option value="2">Março</option>
+      <option value="3">Abril</option>
+      <option value="4">Maio</option>
+      <option value="5">Junho</option>
+      <option value="6" selected>Julho</option>
+      <option value="7">Agosto</option>
+      <option value="8">Setembro</option>
+      <option value="9">Outubro</option>
+      <option value="10">Novembro</option>
+      <option value="11">Dezembro</option>
+    </select>
   </div>
 
-  <div class="total-box">
-    <div class="mes-selector">
-      <label for="mes">Mês:</label>
-      <select id="mes">
-        <option value="01">Janeiro</option>
-        <option value="02">Fevereiro</option>
-        <option value="03">Março</option>
-        <option value="04">Abril</option>
-        <option value="05">Maio</option>
-        <option value="06">Junho</option>
-        <option value="07" selected>Julho</option>
-        <option value="08">Agosto</option>
-        <option value="09">Setembro</option>
-        <option value="10">Outubro</option>
-        <option value="11">Novembro</option>
-        <option value="12">Dezembro</option>
-      </select>
-    </div>
-    <h3>💰 Valor Total (Todos os registros)</h3>
-    <div class="total-line">
-      <span>iFood:</span>
-      <span>R$ 24.024,39</span>
-    </div>
-    <div class="total-line">
-      <span>Delivery Much:</span>
-      <span>R$ 5.308,77</span>
-    </div>
-    <hr>
-    <div class="total-line" style="font-weight: bold;">
-      <span>Total Geral:</span>
-      <span>R$ 29.333,16</span>
-    </div>
+  <h3>💰 Valor Total (Todos os registros)</h3>
+  <div id="linha-ifood" class="total-line">
+    <span>iFood:</span>
+    <span id="valor-ifood">R$ 0,00</span>
   </div>
+  <div id="linha-dm" class="total-line">
+    <span>Delivery Much:</span>
+    <span id="valor-dm">R$ 0,00</span>
+  </div>
+  <hr>
+  <div class="total-line" style="font-weight: bold;">
+    <span>Total Geral:</span>
+    <span id="valor-total">R$ 0,00</span>
+  </div>
+</div>
 
-  <script>
-    // Define ontem como valor padrão da data de início
-    const ontem = new Date();
-    ontem.setDate(ontem.getDate() - 1);
-    const ontemFormatado = ontem.toISOString().split('T')[0];
+<script>
+  const hoje = new Date();
+  const ontem = new Date();
+  ontem.setDate(ontem.getDate() - 1);
+  document.getElementById('dataInicio').value = ontem.toISOString().split('T')[0];
+  document.getElementById('dataFim').value = hoje.toISOString().split('T')[0];
 
-    document.getElementById('dataInicio').value = ontemFormatado;
-    document.getElementById('dataFim').valueAsDate = new Date(); // hoje
-  </script>
+  const labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+  const dadosSimulados = {
+    "todas": [120, 140, 180, 160, 210, 190, 230],
+    "padaria": [60, 70, 90, 80, 100, 95, 110],
+    "mercatto": [50, 60, 70, 65, 85, 75, 100],
+    "villa": [10, 10, 20, 15, 25, 20, 20],
+    "gourmet": [20, 25, 30, 35, 40, 30, 35],
+    "kids": [5, 5, 10, 8, 12, 10, 12]
+  };
+
+  const vendasMensais = {}; // simulação de dados por mês
+  for (let mes = 0; mes < 12; mes++) {
+    const dias = new Date(2024, mes + 1, 0).getDate();
+    let ifood = [];
+    let dm = [];
+    for (let d = 1; d <= dias; d++) {
+      ifood.push(Math.floor(Math.random() * 500) + 100); // 100 a 600
+      dm.push(Math.floor(Math.random() * 200) + 50);     // 50 a 250
+    }
+    vendasMensais[mes] = { ifood, dm };
+  }
+
+  const ctx = document.getElementById('graficoVendas').getContext('2d');
+  let chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Vendas',
+        data: dadosSimulados["todas"],
+        backgroundColor: 'rgba(41, 128, 185, 0.2)',
+        borderColor: '#2980b9',
+        borderWidth: 2,
+        tension: 0.3,
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      },
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+
+  function atualizarGrafico() {
+    const empresa = document.getElementById('empresa').value;
+    chart.data.datasets[0].data = dadosSimulados[empresa] || dadosSimulados["todas"];
+    chart.update();
+  }
+
+  function atualizarTotais() {
+    const mes = parseInt(document.getElementById('mes').value);
+    const vendas = vendasMensais[mes];
+    const totalIfood = vendas.ifood.reduce((a, b) => a + b, 0);
+    const totalDM = vendas.dm.reduce((a, b) => a + b, 0);
+    const totalGeral = totalIfood + totalDM;
+
+    document.getElementById('valor-ifood').textContent = `R$ ${totalIfood.toLocaleString('pt-BR')},00`;
+    document.getElementById('valor-dm').textContent = `R$ ${totalDM.toLocaleString('pt-BR')},00`;
+    document.getElementById('valor-total').textContent = `R$ ${totalGeral.toLocaleString('pt-BR')},00`;
+  }
+
+  atualizarTotais(); // carrega ao iniciar
+</script>
 
 </body>
 </html>
