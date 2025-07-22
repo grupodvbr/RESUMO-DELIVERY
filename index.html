@@ -20,7 +20,13 @@
     .total-box h3, .resumo-box h3 { margin-top: 0; }
     .total-line { display: flex; justify-content: space-between; padding: 5px 0; font-size: 1.1em; }
     .total-line strong { font-weight: bold; }
-    .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: end; }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      align-items: end;
+    }
     .filters label { font-weight: bold; }
     .filters select, .filters input[type="date"] {
       padding: 10px;
@@ -60,34 +66,6 @@
 <header>📊 Painel Financeiro Integrado</header>
 
 <div class="container">
-  <div class="filters">
-    <div>
-      <label for="dataInicio">Data Início</label>
-      <input type="date" id="dataInicio">
-    </div>
-    <div>
-      <label for="dataFim">Data Fim</label>
-      <input type="date" id="dataFim">
-    </div>
-    <div>
-      <label for="empresa">Empresa</label>
-      <select id="empresa">
-        <option value="todas">Todas</option>
-      </select>
-    </div>
-    <div>
-      <label for="plataforma">Plataforma</label>
-      <select id="plataforma">
-        <option value="todas">Todas</option>
-        <option value="iFood">iFood</option>
-        <option value="Delivery Much">Delivery Much</option>
-      </select>
-    </div>
-    <div>
-      <button onclick="filtrarGrafico(); atualizarTotais();">Filtrar</button>
-    </div>
-  </div>
-
   <div class="chart-box">
     <h3>📈 Vendas Brutas por Dia</h3>
     <canvas id="graficoVendas"></canvas>
@@ -96,7 +74,7 @@
   <div class="total-box">
     <div style="float:right">
       <label for="mesResumo">Mês:</label>
-      <select id="mesResumo" onchange="atualizarTotais()">
+      <select id="mesResumo" onchange="filtrarGrafico(); atualizarTotais()">
         <option value="">Todos</option>
         <option value="01">Janeiro</option>
         <option value="02">Fevereiro</option>
@@ -135,20 +113,47 @@
 
   <div class="resumo-box">
     <h3>🏪 Resumo por Empresa</h3>
+    <div class="filters">
+      <div>
+        <label for="dataInicio">Data Início</label>
+        <input type="date" id="dataInicio">
+      </div>
+      <div>
+        <label for="dataFim">Data Fim</label>
+        <input type="date" id="dataFim">
+      </div>
+      <div>
+        <label for="empresa">Empresa</label>
+        <select id="empresa">
+          <option value="todas">Todas</option>
+        </select>
+      </div>
+      <div>
+        <label for="plataforma">Plataforma</label>
+        <select id="plataforma">
+          <option value="todas">Todas</option>
+          <option value="iFood">iFood</option>
+          <option value="Delivery Much">Delivery Much</option>
+        </select>
+      </div>
+      <div>
+        <button onclick="filtrarGrafico(); atualizarTotais();">Filtrar</button>
+      </div>
+    </div>
     <div id="resumo-empresas"></div>
   </div>
 </div>
 
 <script>
-const URL_SCRIPT = "https://script.google.com/macros/s/AKfycby3tGjtsUXcak51bcWG175VU4SWT2RV6pA9vJLyQxlMXSt3bGJFoi2R0YmDmuwzbcbOnw/exec";
+const URL_SCRIPT = "https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec";
 let dados = [];
 let chart;
 
 function setDefaultDates() {
   const hoje = new Date();
-  const inicio = new Date();
-  inicio.setDate(hoje.getDate() - hoje.getDay());
-  document.getElementById("dataInicio").value = inicio.toISOString().split('T')[0];
+  const ontem = new Date();
+  ontem.setDate(hoje.getDate() - 1);
+  document.getElementById("dataInicio").value = ontem.toISOString().split('T')[0];
   document.getElementById("dataFim").value = hoje.toISOString().split('T')[0];
 }
 
@@ -179,17 +184,12 @@ function popularEmpresas() {
 }
 
 function filtrarGrafico() {
-  const empresa = document.getElementById("empresa").value;
-  const plataforma = document.getElementById("plataforma").value;
-  const dataInicio = document.getElementById("dataInicio").value;
-  const dataFim = document.getElementById("dataFim").value;
+  const mes = document.getElementById("mesResumo").value;
+  const empresaResumo = document.getElementById("empresaResumo").value;
 
   const filtrados = dados.filter(d => {
-    const data = d.data;
-    return (empresa === "todas" || d.empresa === empresa) &&
-           (plataforma === "todas" || d.plataforma === plataforma) &&
-           (!dataInicio || data >= dataInicio) &&
-           (!dataFim || data <= dataFim);
+    const dataMes = d.data?.split("-")[1];
+    return (!mes || dataMes === mes) && (!empresaResumo || d.empresa === empresaResumo);
   });
 
   const agrupado = {};
@@ -235,16 +235,23 @@ function filtrarGrafico() {
 }
 
 function atualizarTotais() {
-  const mes = document.getElementById("mesResumo")?.value;
-  const empresaResumo = document.getElementById("empresaResumo")?.value;
+  const dataInicio = document.getElementById("dataInicio").value;
+  const dataFim = document.getElementById("dataFim").value;
+  const empresa = document.getElementById("empresa").value;
+  const plataforma = document.getElementById("plataforma").value;
+
   const resumoPorEmpresa = {};
   let totalIfood = 0;
   let totalDM = 0;
 
-  dados.forEach(d => {
-    const dataMes = d.data?.split("-")[1];
-    if (mes && dataMes !== mes) return;
-    if (empresaResumo && d.empresa !== empresaResumo) return;
+  const filtrados = dados.filter(d => {
+    return (!dataInicio || d.data >= dataInicio) &&
+           (!dataFim || d.data <= dataFim) &&
+           (empresa === "todas" || d.empresa === empresa) &&
+           (plataforma === "todas" || d.plataforma === plataforma);
+  });
+
+  filtrados.forEach(d => {
     const empresa = d.empresa;
     const plataforma = d.plataforma;
 
