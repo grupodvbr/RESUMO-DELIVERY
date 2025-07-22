@@ -7,203 +7,124 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      margin: 20px;
-      color: #333;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 0;
     }
 
-    h2 {
+    header {
+      background-color: #1e1e2f;
+      color: #fff;
+      padding: 20px;
       text-align: center;
-      color: #c0392b;
-    }
-
-    .filtros {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .filtros label {
+      font-size: 1.4em;
       font-weight: bold;
     }
 
-    .filtros input,
-    .filtros select,
-    .filtros button {
-      padding: 10px;
-      font-size: 16px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .filtros .checkboxes {
+    .filters {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-    }
-
-    .filtros button {
-      background-color: #c0392b;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .painel {
-      background: #fff;
+      gap: 10px;
       padding: 15px;
-      margin-bottom: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
-    .painel strong {
-      color: #2c3e50;
+    .filters label {
+      font-weight: bold;
+    }
+
+    .filters select, .filters input[type="date"] {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 100%;
+    }
+
+    .total-box {
+      background-color: #ffffff;
+      margin: 15px;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .total-box h3 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .total-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.2em;
+      margin: 5px 0;
+      color: #444;
+    }
+
+    @media (min-width: 600px) {
+      .filters {
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .filters > div {
+        flex: 1;
+        margin-right: 10px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <h2>📊 Painel Financeiro</h2>
+  <header>📊 Painel Financeiro - Delivery</header>
 
-  <div class="filtros">
+  <div class="filters">
     <div>
-      <label for="dataInicio">📅 Data Início:</label>
+      <label for="dataInicio">Data Início</label>
       <input type="date" id="dataInicio">
     </div>
-
     <div>
-      <label for="dataFim">📅 Data Fim:</label>
+      <label for="dataFim">Data Fim</label>
       <input type="date" id="dataFim">
     </div>
-
     <div>
-      <label for="plataforma">📦 Plataforma:</label>
-      <select id="plataforma">
-        <option value="">Todas</option>
-        <option value="iFood">iFood</option>
-        <option value="Delivery Much">Delivery Much</option>
+      <label for="empresa">Empresa</label>
+      <select id="empresa">
+        <option value="todas">Todas</option>
+        <option value="padaria">Padaria Delícia</option>
+        <option value="mercatto">Mercatto Delícia</option>
+        <option value="villa">Villa Gourmet</option>
+        <option value="gourmet">Delícia Gourmet</option>
+        <option value="kids">Mercatto Kids</option>
       </select>
     </div>
-
     <div>
-      <label for="empresaFiltro">🏪 Empresa:</label>
-      <select id="empresaFiltro">
-        <option value="">Todas</option>
-        <option value="PADARIA DELÍCIA">PADARIA DELÍCIA</option>
-        <option value="MERCATTO DELÍCIA">MERCATTO DELÍCIA</option>
-        <option value="DELÍCIA GOURMET">DELÍCIA GOURMET</option>
+      <label for="canal">Canal</label>
+      <select id="canal">
+        <option value="todos">Todos</option>
+        <option value="ifood">iFood</option>
+        <option value="deliverymuch">Delivery Much</option>
       </select>
-    </div>
-
-    <div class="checkboxes">
-      <label><input type="checkbox" id="mostrarTodas"> ✅ Mostrar todas as empresas (total geral)</label>
-      <label><input type="checkbox" id="mostrarSeparadas"> 📄 Mostrar separadas</label>
-    </div>
-
-    <div>
-      <button onclick="filtrar()">🔍 Filtrar</button>
     </div>
   </div>
 
-  <div id="resultados"></div>
-
-  <script>
-    const url = 'https://script.google.com/macros/s/AKfycby-el1ljDKhaYl236G3xSccyF6YLkyKUHqtt6Ob_GaPTOcEdHUGbPFYla8wFV4Qg64NBg/exec'; // Substitua pela URL gerada no Google Apps Script
-    let dados = [];
-
-    async function carregarDados() {
-      const res = await fetch(url);
-      const json = await res.json();
-
-      dados = json.map(l => ({
-        plataforma: l.plataforma || "",
-        empresa: l.empresa || "",
-        data: new Date(l.data),
-        bruto: parseFloat(l.bruto || 0),
-        liquido: parseFloat(l.liquido || 0),
-        taxa: parseFloat(l.taxa || 0),
-        repassado: parseFloat(l.repassado || 0),
-        areceber: parseFloat(l.areceber || 0),
-      }));
-
-      filtrar();
-    }
-
-    function filtrar() {
-      const inicio = new Date(document.getElementById('dataInicio').value);
-      const fim = new Date(document.getElementById('dataFim').value);
-      const plataforma = document.getElementById('plataforma').value;
-      const empresa = document.getElementById('empresaFiltro').value;
-      const mostrarTodas = document.getElementById('mostrarTodas').checked;
-      const mostrarSeparadas = document.getElementById('mostrarSeparadas').checked;
-
-      const filtrados = dados.filter(l => {
-        const dentroPeriodo = (!isNaN(inicio) ? l.data >= inicio : true) &&
-                              (!isNaN(fim) ? l.data <= fim : true);
-        const mesmaPlataforma = plataforma ? l.plataforma === plataforma : true;
-        const mesmaEmpresa = empresa ? l.empresa === empresa : true;
-        return dentroPeriodo && mesmaPlataforma && mesmaEmpresa;
-      });
-
-      let html = "";
-
-      if (mostrarTodas) {
-        const total = filtrados.reduce((acc, d) => {
-          acc.bruto += d.bruto;
-          acc.liquido += d.liquido;
-          acc.taxa += d.taxa;
-          acc.repassado += d.repassado;
-          acc.areceber += d.areceber;
-          return acc;
-        }, { bruto: 0, liquido: 0, taxa: 0, repassado: 0, areceber: 0 });
-
-        html += `
-          <div class="painel">
-            <h3>📊 TOTAL GERAL</h3>
-            💰 <strong>Bruto:</strong> R$ ${total.bruto.toFixed(2)}<br>
-            💸 <strong>Líquido:</strong> R$ ${total.liquido.toFixed(2)}<br>
-            📉 <strong>Taxa:</strong> R$ ${total.taxa.toFixed(2)}<br>
-            ✅ <strong>Já repassado:</strong> R$ ${total.repassado.toFixed(2)}<br>
-            🕐 <strong>A receber:</strong> R$ ${total.areceber.toFixed(2)}
-          </div>
-        `;
-      }
-
-      if (mostrarSeparadas || (!mostrarTodas && !mostrarSeparadas)) {
-        const porEmpresa = {};
-        filtrados.forEach(d => {
-          if (!porEmpresa[d.empresa]) {
-            porEmpresa[d.empresa] = { bruto: 0, liquido: 0, taxa: 0, repassado: 0, areceber: 0 };
-          }
-          porEmpresa[d.empresa].bruto += d.bruto;
-          porEmpresa[d.empresa].liquido += d.liquido;
-          porEmpresa[d.empresa].taxa += d.taxa;
-          porEmpresa[d.empresa].repassado += d.repassado;
-          porEmpresa[d.empresa].areceber += d.areceber;
-        });
-
-        for (const [empresa, d] of Object.entries(porEmpresa)) {
-          html += `
-            <div class="painel">
-              <h3>${empresa}</h3>
-              💰 <strong>Bruto:</strong> R$ ${d.bruto.toFixed(2)}<br>
-              💸 <strong>Líquido:</strong> R$ ${d.liquido.toFixed(2)}<br>
-              📉 <strong>Taxa:</strong> R$ ${d.taxa.toFixed(2)}<br>
-              ✅ <strong>Já repassado:</strong> R$ ${d.repassado.toFixed(2)}<br>
-              🕐 <strong>A receber:</strong> R$ ${d.areceber.toFixed(2)}
-            </div>
-          `;
-        }
-      }
-
-      document.getElementById('resultados').innerHTML = html || "Nenhum resultado encontrado.";
-    }
-
-    carregarDados();
-  </script>
+  <div class="total-box">
+    <h3>💰 Valor Total (Todos os registros)</h3>
+    <div class="total-line">
+      <span>iFood:</span>
+      <span>R$ 24.024,39</span>
+    </div>
+    <div class="total-line">
+      <span>Delivery Much:</span>
+      <span>R$ 5.308,77</span>
+    </div>
+    <hr>
+    <div class="total-line" style="font-weight: bold;">
+      <span>Total Geral:</span>
+      <span>R$ 29.333,16</span>
+    </div>
+  </div>
 
 </body>
 </html>
