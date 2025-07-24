@@ -291,8 +291,8 @@ function atualizarResumoEmpresa() {
         <br><u>${plat}</u><br>
         💰 Bruto: R$ ${val.bruto.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
         💵 Líquido: R$ ${val.liquido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
-        📉 Taxa (${perc.toFixed(2)}%): R$ ${val.taxa.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
-        ✅ Já repassado: R$ ${val.repassado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
+        📉 Investimento (${perc.toFixed(2)}%): R$ ${val.taxa.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
+        ✅ Recebimento no período: R$ ${val.repassado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
       `;
     }
     resumo.appendChild(div);
