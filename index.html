@@ -2,12 +2,27 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Painel Financeiro Integrado</title>
+  <title>Vendas Delivery</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
-    header { background-color: #1e1e2f; color: white; padding: 20px; text-align: center; font-size: 1.5em; font-weight: bold; }
+    header {
+      background-color: white;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #ccc;
+    }
+    header img {
+      height: 50px;
+      margin-right: 20px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.6em;
+      font-weight: bold;
+    }
     .container { padding: 20px; }
     .chart-box, .total-box, .resumo-box {
       background: white;
@@ -57,7 +72,10 @@
 </head>
 <body>
 
-<header>📊 Painel Financeiro Integrado</header>
+<header>
+  <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Logo CB Systems">
+  <h1>Vendas Delivery</h1>
+</header>
 
 <div class="container">
   <div class="total-box">
@@ -105,7 +123,6 @@
     <canvas id="graficoVendas"></canvas>
   </div>
 
-  <!-- Filtros para o resumo por empresa -->
   <div class="filters">
     <div>
       <label for="dataInicio">Data Início</label>
@@ -148,7 +165,7 @@ let chart;
 function setDefaultDates() {
   const hoje = new Date();
   const ano = hoje.getFullYear();
-  const mes = hoje.getMonth(); // mês atual (0 a 11)
+  const mes = hoje.getMonth(); // mês atual (0-11)
 
   const inicio = new Date(ano, mes, 1); // dia 01 do mês atual
   const fim = new Date(ano, mes, 5);    // dia 05 do mês atual
