@@ -101,7 +101,7 @@
   </div>
 
   <div class="chart-box">
-    <h3>📈 Vendas Brutas por Dia</h3>
+    <h3>📈 Vendas Brutas por Mês</h3>
     <canvas id="graficoVendas"></canvas>
   </div>
 
@@ -292,7 +292,6 @@ function atualizarResumoEmpresa() {
         💰 Bruto: R$ ${val.bruto.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
         💵 Líquido: R$ ${val.liquido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
         📉 Investimento (${perc.toFixed(2)}%): R$ ${val.taxa.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
-        ✅ Recebimento no período: R$ ${val.repassado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
       `;
     }
     resumo.appendChild(div);
