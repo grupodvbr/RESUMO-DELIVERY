@@ -2,91 +2,41 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Vendas Delivery</title>
+  <title>Painel Financeiro Integrado</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+    header { background-color: #1e1e2f; color: white; padding: 20px; text-align: center; font-size: 1.5em; font-weight: bold; }
+    .container { padding: 20px; }
+    .chart-box, .total-box, .resumo-box {
       background: white;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background-color: white;
-      padding: 10px 20px;
-      display: flex;
-      align-items: center;
-      border-bottom: 1px solid #ccc;
-    }
-    header img {
-      height: 50px;
-      margin-right: 20px;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 1.6em;
-      font-weight: bold;
-    }
-    .container {
-      padding: 20px;
-    }
-    .filtros {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 20px;
-      align-items: end;
-    }
-    .filtros label {
-      font-weight: bold;
-    }
-    .filtros input,
-    .filtros select,
-    .filtros button {
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 1em;
-    }
-    .filtros > div {
-      flex: 1 1 200px;
-    }
-    .filtros button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    .filtros button:hover {
-      background-color: #0056b3;
-    }
-    .empresa-box {
-      background: #d0f0d5;
       border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 15px;
-      box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      padding: 20px;
+      margin-bottom: 20px;
     }
-    .empresa-box h2 {
-      margin: 0 0 10px;
-      font-size: 1.1em;
+    .chart-box canvas { max-width: 100%; height: 300px; }
+    .total-box h3, .resumo-box h3 { margin-top: 0; }
+    .total-line { display: flex; justify-content: space-between; padding: 5px 0; font-size: 1.1em; }
+    .total-line strong { font-weight: bold; }
+    .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: end; }
+    .filters label { font-weight: bold; }
+    .filters select, .filters input[type="date"] {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 100%;
     }
-    .empresa-box ul {
-      list-style: none;
-      padding-left: 0;
-      margin: 0;
-      font-size: 0.95em;
-    }
-    .empresa-box li {
-      margin-bottom: 4px;
-    }
-    .grafico-desktop {
-      display: none;
-    }
-    .resumo-box {
-      margin-top: 30px;
+    .filters > div { flex: 1 1 200px; }
+    .filters button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background-color: #1e1e2f;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
     }
     .resumo-linha {
       background: #eaffea;
@@ -95,58 +45,99 @@
       margin-bottom: 10px;
       line-height: 1.6;
     }
-    .resumo-linha strong {
-      display: block;
-      font-size: 1.1em;
-      margin-bottom: 4px;
-    }
-    @media (min-width: 768px) {
-      .grafico-desktop {
-        display: block;
-        margin-top: 15px;
-      }
-      canvas {
-        max-width: 100%;
-        margin: 0 auto;
-      }
+    .resumo-linha strong { display: block; font-size: 1.1em; margin-bottom: 4px; }
+    .total-box select#empresaResumo {
+      margin-top: 5px;
+      margin-left: 10px;
+      padding: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
   </style>
 </head>
 <body>
 
-<header>
-  <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Logo CB Systems">
-  <h1>Vendas Delivery</h1>
-</header>
+<header>📊 Painel Financeiro Integrado</header>
 
 <div class="container">
-  <div class="filtros">
-    <div>
-      <label for="dataInicio">Data Início:</label>
-      <input type="date" id="dataInicio" />
-    </div>
-    <div>
-      <label for="dataFim">Data Fim:</label>
-      <input type="date" id="dataFim" />
-    </div>
-    <div>
-      <label for="empresaFiltro">Empresa:</label>
-      <select id="empresaFiltro">
+  <div class="total-box">
+    <div style="float:right">
+      <label for="mesResumo">Mês:</label>
+      <select id="mesResumo" onchange="atualizarTotais()">
+        <option value="">Todos</option>
+        <option value="01">Janeiro</option>
+        <option value="02">Fevereiro</option>
+        <option value="03">Março</option>
+        <option value="04">Abril</option>
+        <option value="05">Maio</option>
+        <option value="06">Junho</option>
+        <option value="07" selected>Julho</option>
+        <option value="08">Agosto</option>
+        <option value="09">Setembro</option>
+        <option value="10">Outubro</option>
+        <option value="11">Novembro</option>
+        <option value="12">Dezembro</option>
+      </select>
+      <br>
+      <label for="empresaResumo">Empresa:</label>
+      <select id="empresaResumo" onchange="atualizarTotais()">
         <option value="">Todas</option>
       </select>
     </div>
-    <div>
-      <button onclick="aplicarFiltro()">Filtrar</button>
+    <h3>💰 Totais por Plataforma</h3>
+    <div class="total-line">
+      <span>iFood</span>
+      <span id="total-ifood">R$ 0,00</span>
     </div>
-    <div>
-      <button id="exportar" onclick="exportarPDF()">📄 Exportar PDF</button>
+    <div class="total-line">
+      <span>Delivery Much</span>
+      <span id="total-dm">R$ 0,00</span>
     </div>
-    <div>
-      <button id="enviarWhatsapp">📲 Enviar pelo WhatsApp</button>
+    <hr />
+    <div class="total-line">
+      <strong>Total Geral</strong>
+      <strong id="total-geral">R$ 0,00</strong>
     </div>
   </div>
 
-  <div id="painel"></div>
+  <div class="chart-box">
+    <h3>📈 Vendas Brutas por Mês</h3>
+    <canvas id="graficoVendas"></canvas>
+  </div>
+
+  <!-- Filtros para o resumo por empresa -->
+  <div class="filters">
+    <div>
+      <label for="dataInicio">Data Início</label>
+      <input type="date" id="dataInicio">
+    </div>
+    <div>
+      <label for="dataFim">Data Fim</label>
+      <input type="date" id="dataFim">
+    </div>
+    <div>
+      <label for="empresa">Empresa</label>
+      <select id="empresa">
+        <option value="todas">Todas</option>
+      </select>
+    </div>
+    <div>
+      <label for="plataforma">Plataforma</label>
+      <select id="plataforma">
+        <option value="todas">Todas</option>
+        <option value="iFood">iFood</option>
+        <option value="Delivery Much">Delivery Much</option>
+      </select>
+    </div>
+    <div>
+      <button onclick="atualizarResumoEmpresa()">Filtrar Resumo</button>
+    </div>
+  </div>
+
+  <div class="resumo-box">
+    <h3>🏪 Resumo por Empresa</h3>
+    <div id="resumo-empresas"></div>
+  </div>
 </div>
 
 <script>
@@ -157,7 +148,7 @@ let chart;
 function setDefaultDates() {
   const hoje = new Date();
   const ano = hoje.getFullYear();
-  const mes = hoje.getMonth(); // mês atual (0-11)
+  const mes = hoje.getMonth(); // mês atual (0 a 11)
 
   const inicio = new Date(ano, mes, 1); // dia 01 do mês atual
   const fim = new Date(ano, mes, 5);    // dia 05 do mês atual
