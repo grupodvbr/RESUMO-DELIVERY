@@ -151,6 +151,12 @@
     </div>
   </div>
 
+  <div style="text-align: right; margin-bottom: 10px;">
+    <button onclick="enviarResumoWhatsApp()" style="background-color: #25D366; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+      📤 Enviar Resumo via WhatsApp
+    </button>
+  </div>
+
   <div class="resumo-box">
     <h3>🏪 Resumo por Empresa</h3>
     <div id="resumo-empresas"></div>
@@ -158,168 +164,13 @@
 </div>
 
 <script>
-const URL_SCRIPT = "https://script.google.com/macros/s/AKfycby3tGjtsUXcak51bcWG175VU4SWT2RV6pA9vJLyQxlMXSt3bGJFoi2R0YmDmuwzbcbOnw/exec";
-let dados = [];
-let chart;
-
-function setDefaultDates() {
-  const hoje = new Date();
-  const ano = hoje.getFullYear();
-  const mes = hoje.getMonth(); // mês atual (0-11)
-
-  const inicio = new Date(ano, mes, 1); // dia 01 do mês atual
-  const fim = new Date(ano, mes, 5);    // dia 05 do mês atual
-
-  document.getElementById("dataInicio").value = inicio.toISOString().split('T')[0];
-  document.getElementById("dataFim").value = fim.toISOString().split('T')[0];
+function enviarResumoWhatsApp() {
+  const resumoTexto = document.getElementById("resumo-empresas").innerText;
+  const texto = encodeURIComponent("\ud83d\udcca *Resumo por Empresa*\n\n" + resumoTexto);
+  const numero = "5577999761436"; // coloque seu número com DDD
+  const link = `https://wa.me/${numero}?text=${texto}`;
+  window.open(link, '_blank');
 }
-
-async function carregarDados() {
-  setDefaultDates();
-  const res = await fetch(URL_SCRIPT);
-  dados = await res.json();
-  popularEmpresas();
-  filtrarGrafico();
-  atualizarTotais();
-  atualizarResumoEmpresa();
-}
-
-function popularEmpresas() {
-  const select = document.getElementById("empresa");
-  const selectResumo = document.getElementById("empresaResumo");
-  const empresas = [...new Set(dados.map(d => d.empresa))];
-  empresas.forEach(empresa => {
-    const opt1 = document.createElement("option");
-    opt1.value = empresa;
-    opt1.textContent = empresa;
-    select.appendChild(opt1);
-
-    const opt2 = document.createElement("option");
-    opt2.value = empresa;
-    opt2.textContent = empresa;
-    selectResumo.appendChild(opt2);
-  });
-}
-
-function atualizarTotais() {
-  const mes = document.getElementById("mesResumo").value;
-  const empresa = document.getElementById("empresaResumo").value;
-  let totalIfood = 0;
-  let totalDM = 0;
-
-  dados.forEach(d => {
-    const mesDado = d.data.split("-")[1];
-    if ((mes && mes !== mesDado) || (empresa && d.empresa !== empresa)) return;
-
-    const bruto = parseFloat(d.bruto || 0);
-    if (d.plataforma === "iFood") totalIfood += bruto;
-    if (d.plataforma === "Delivery Much") totalDM += bruto;
-  });
-
-  document.getElementById("total-ifood").textContent = "R$ " + totalIfood.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-  document.getElementById("total-dm").textContent = "R$ " + totalDM.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-  document.getElementById("total-geral").textContent = "R$ " + (totalIfood + totalDM).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-}
-
-function filtrarGrafico() {
-  const agrupado = {};
-  dados.forEach(d => {
-    const data = d.data;
-    const bruto = parseFloat(d.bruto || 0);
-    const label = new Date(data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-    agrupado[label] = (agrupado[label] || 0) + bruto;
-  });
-
-  const labels = Object.keys(agrupado).sort();
-  const valores = labels.map(d => agrupado[d]);
-
-  if (chart) chart.destroy();
-  chart = new Chart(document.getElementById("graficoVendas").getContext('2d'), {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Valor Bruto por Dia',
-        data: valores,
-        borderColor: '#2980b9',
-        backgroundColor: 'rgba(41,128,185,0.1)',
-        borderWidth: 2,
-        tension: 0.3,
-        pointRadius: 4,
-        fill: true
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: {
-          beginAtZero: false,
-          ticks: {
-            callback: value => 'R$ ' + value.toLocaleString('pt-BR')
-          }
-        }
-      }
-    }
-  });
-}
-
-function atualizarResumoEmpresa() {
-  const dataInicio = document.getElementById("dataInicio").value;
-  const dataFim = document.getElementById("dataFim").value;
-  const empresa = document.getElementById("empresa").value;
-  const plataforma = document.getElementById("plataforma").value;
-
-  const filtrados = dados.filter(d => {
-    return (!dataInicio || d.data >= dataInicio) &&
-           (!dataFim || d.data <= dataFim) &&
-           (empresa === "todas" || d.empresa === empresa) &&
-           (plataforma === "todas" || d.plataforma === plataforma);
-  });
-
-  const resumoPorEmpresa = {};
-
-  filtrados.forEach(d => {
-    const emp = d.empresa;
-    const plat = d.plataforma;
-
-    if (!resumoPorEmpresa[emp]) resumoPorEmpresa[emp] = {};
-    if (!resumoPorEmpresa[emp][plat]) {
-      resumoPorEmpresa[emp][plat] = { bruto: 0, liquido: 0, taxa: 0, repassado: 0 };
-    }
-
-    const bruto = parseFloat(d.bruto || 0);
-    const liquido = parseFloat(d.liquido || 0);
-    const taxa = parseFloat(d.taxa || 0);
-    const repassado = parseFloat(d.repassado || 0);
-
-    resumoPorEmpresa[emp][plat].bruto += bruto;
-    resumoPorEmpresa[emp][plat].liquido += liquido;
-    resumoPorEmpresa[emp][plat].taxa += taxa;
-    resumoPorEmpresa[emp][plat].repassado += repassado;
-  });
-
-  const resumo = document.getElementById("resumo-empresas");
-  resumo.innerHTML = "";
-  for (const emp in resumoPorEmpresa) {
-    const div = document.createElement("div");
-    div.className = "resumo-linha";
-    div.innerHTML = `<strong>${emp}</strong>`;
-    for (const plat in resumoPorEmpresa[emp]) {
-      const val = resumoPorEmpresa[emp][plat];
-      const perc = (val.taxa / val.bruto) * 100 || 0;
-      div.innerHTML += `
-        <br><u>${plat}</u><br>
-        💰 Bruto: R$ ${val.bruto.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
-        💵 Líquido: R$ ${val.liquido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
-        📉 Investimento (${perc.toFixed(2)}%): R$ ${val.taxa.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
-      `;
-    }
-    resumo.appendChild(div);
-  }
-}
-
-carregarDados();
 </script>
 
 </body>
