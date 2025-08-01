@@ -147,10 +147,14 @@ let chart;
 
 function setDefaultDates() {
   const hoje = new Date();
-  const ontem = new Date();
-  ontem.setDate(hoje.getDate() - 1);
-  document.getElementById("dataInicio").value = ontem.toISOString().split('T')[0];
-  document.getElementById("dataFim").value = hoje.toISOString().split('T')[0];
+  const ano = hoje.getFullYear();
+  const mes = hoje.getMonth(); // mês atual (0 a 11)
+
+  const inicio = new Date(ano, mes, 1); // dia 01 do mês atual
+  const fim = new Date(ano, mes, 5);    // dia 05 do mês atual
+
+  document.getElementById("dataInicio").value = inicio.toISOString().split('T')[0];
+  document.getElementById("dataFim").value = fim.toISOString().split('T')[0];
 }
 
 async function carregarDados() {
